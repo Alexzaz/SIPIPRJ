@@ -563,65 +563,7 @@ def UserConfirmation() -> tuple:
     return portscan, vulnscan, downloadexploits
 
 
-def WebScan() -> bool:
-    return Confirmation("Do you want to scan for web vulnerabilities? [Y/n] : ")
 
-
-def GetHostsToScan(hosts, console) -> list:
-    if len(hosts) == 0:
-        raise SystemExit(
-            "No hosts found! {time} - Scan completed.".format(
-                time = datetime.now().strftime("%b %d %Y %H:%M:%S")
-            )
-        )
-
-    index = 0
-    for host in hosts:
-        if not len(host) % 2 == 0:
-            host += " "
-
-        msg = Text.assemble(("[", "red"), (str(index), "cyan"), ("] ", "red"), host)
-
-        #console.print(msg, justify = "center")
-
-        index += 1
-
-    if DontAskForConfirmation:
-        return hosts
-
-    """need rework console.print(
-        "\n[yellow]Enter the index number of the "
-        + "host you would like to enumurate further.\n"
-        + "Enter 'all' to enumurate all hosts.\n"
-        + "Enter 'exit' to exit [/yellow]"
-    )"""
-
-    while True:
-        host = input(f"────> ")
-        Targets = hosts
-
-        if host in hosts:
-            Targets = [host]
-        else:
-            if host == "all" or host == "":
-                break
-            elif host == "exit":
-                raise SystemExit(
-                    "{time} - Scan completed.".format(
-                        time = datetime.now().strftime("%b %d %Y %H:%M:%S")
-                    )
-                )
-            else:
-                if int(host) < len(hosts) and int(host) >= 0:
-                    Targets = [hosts[int(host)]]
-                    break
-                else:
-                    """need rework console.print(
-                        "Please enter a valid host number or 'all' " + "or 'exit'",
-                        style = "red",
-                    )"""
-
-    return Targets
 
 
 def InitArgsConf(args, log) -> None:
@@ -866,18 +808,6 @@ def CheckConnection(log) -> bool:
     else:
         return True
 
-
-def SaveOutput(console, out_type, report, output_file) -> None:
-    if out_type == "html":
-        if not output_file.endswith(".html"):
-            output_file += ".html"
-        console.save_html(output_file)
-    elif out_type == "svg":
-        if not output_file.endswith(".svg"):
-            output_file += ".svg"
-        console.save_svg(output_file)
-    elif out_type == "txt":
-        console.save_text(output_file)
 
 
 def get_terminal_width() -> int:

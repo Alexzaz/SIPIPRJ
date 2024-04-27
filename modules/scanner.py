@@ -1,3 +1,10 @@
+"""
+Модуль Scanner предназначен для непосредственного сканирования локальной сети и содержит все необходимые функции.
+
+
+
+"""
+
 import nmap3
 from dataclasses import dataclass
 from re import match as rematch
@@ -13,12 +20,25 @@ from rich.table import Table
 from modules.logger import banner
 from modules.utils import GetIpAdress, ScanMode, ScanType, is_root, DetectIPRange
 
-"""modify ADD CONNECT TO CH"""
+'''modify ADD CONNECT TO CH'''
 #import clickhouse_connect as ChConnect
 
 
-"""add function for regular express"""
+'''add function for regular express'''
 def is_ip(str_):
+    """
+    Функция is_ip() проверяет является введенная строка IP-адресом протокола IPv4
+
+    Args
+    ----
+        str_ - type:string - полученная строка
+
+    Return
+    ------
+        результат сравнения в булевом ТД
+        true - является
+        false - не является
+    """
     return bool(rematch(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', str_))
 
 
@@ -53,6 +73,14 @@ class TargetInfo:
 
 # do a ping scan using nmap
 def TestPing(target, mode=ScanMode.Normal) -> list:
+    """
+    Функция TestPing() проводит обнаружение активных узлов сети пингованием
+
+    Args
+    ----
+        target - type:str - маска подсети на основе IP-адреса
+        mode - type:ScanMode  - тип сканирования
+    """
     nm = PortScanner()
     if isinstance(target, list):
         target = " ".join(target)
@@ -66,6 +94,14 @@ def TestPing(target, mode=ScanMode.Normal) -> list:
 
 # do a arp scan using nmap
 def TestArp(target, mode=ScanMode.Normal) -> list:
+    """
+    Функция TestPing() проводит обнаружение активных узлов сети ARP запросами
+
+    Args
+    ----
+        target - type:str - маска подсети на основе IP-адреса
+        mode - type:ScanMode  - тип сканирования
+    """
     nm = PortScanner()
     nm3 = nmap3.NmapHostDiscovery()
     hosts = []
@@ -95,6 +131,25 @@ def PortScan(
     mode=ScanMode.Normal,
     customflags=""
 ) -> list:
+    """
+    Функция PortScan() - сканирует указанный IP-адрес для выявления активных портов и служб
+
+    Args
+    ----
+        target - type:str - цель сканирования
+        log - type:LoggerObject - кастомный логгер
+        ChClient - type:connector - Коннектор к БД
+        insertDate - type:integer - время начала сканирования в формате timestamp
+        idScan - type:integer - Номер сканирования
+        scanspeed - type:inyeger - уровень скорости сканирования
+        host_timeout - type:integer - таймаут на хост
+        mode - type:ScanMode - тип сканирования
+        customflags - type:str - добавочные опции nmap
+
+    Return
+    ------
+        targetinfo - type:list - Информация о просканированном хосте
+    """
 
     log.logger("info", f"Scanning {target} for open ports ...")
 
@@ -238,16 +293,21 @@ def NoiseScan(target, log, console, scantype=ScanType.ARP, noisetimeout=None) ->
         raise SystemExit
 
 
-def DiscoverHosts(target, console, scantype=ScanType.ARP, mode=ScanMode.Normal) -> list:
-    """if isinstance(target, list):
-        banner(
-            f"Scanning {len(target)} target(s) using {scantype.name} scan ...",
-            "green",
-            console,
-        )
+def DiscoverHosts(target, scantype=ScanType.ARP, mode=ScanMode.Normal) -> list:
+    """
+    Функция DiscoverHosts() проводит обнаружение хостов в сети, если не указаны диапазоны сканирования
 
-    else:
-        banner(f"Scanning {target} using {scantype.name} scan ...", "green", console)"""
+    Args
+    ----
+        target - type:str - локальный IP-адрес
+        scantype - type:ScanType - тип сканирования
+        mode - type:ScanMode - тип сканирования
+
+    Return
+    ------
+        OnlineHosts - type:list - список активных хостов
+    """
+    
     if target.find("/") == -1:
         target = DetectIPRange()
 
@@ -261,6 +321,14 @@ def DiscoverHosts(target, console, scantype=ScanType.ARP, mode=ScanMode.Normal) 
 
 
 def InitHostInfo(target_key) -> TargetInfo:
+    """_summary_
+
+    Args:
+        target_key (_type_): _description_
+
+    Returns:
+        TargetInfo: _description_
+    """
     try:
         mac = target_key["macaddress"]["addr"]
     except (KeyError, IndexError, TypeError):
@@ -328,7 +396,7 @@ def InitPortInfo(port):
     return state, service, product, version, protocol, cpe
 
 
-def AnalyseScanResults(nm, log, console, idScan, insertDate,  atomicInsert, ChClient, target=None) -> list:
+def AnalyseScanResults(nm, log, idScan, insertDate,  atomicInsert, ChClient, target=None) -> list:
     """
     Analyse and print scan results.
     """
